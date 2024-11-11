@@ -1,0 +1,55 @@
+import torch
+from torch import nn
+import torch.nn.functional as F
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from matplotlib import pyplot as plt
+
+N = 100
+D = 2
+K = 3
+X = np.zeros((N * K, D))
+y = np.zeros(N * K, dtype='uint8')
+
+for j in range(K):
+  ix = range(N * j, N * (j + 1))
+  r = np.linspace(0.0, 1, N)
+  t = np.linspace(j * 4, (j + 1) * 4, N) + np.random.randn(N) * 0.2
+  X[ix] = np.c_[r * np.sin(t), r * np.cos(t)]
+  y[ix] = j
+
+plt.figure(figsize=(10, 8))
+plt.scatter(X[:, 0], X[:, 1], c=y, s=40, cmap=plt.cm.rainbow)
+
+X = torch.FloatTensor(X)
+y = torch.LongTensor(y)
+
+D_in, H, D_out = 2, 100, 3
+
+class MyModule(nn.Module):
+  def __init__(self):
+    super().__init__()
+    self.f_lin = nn.Linear(D_in, N)
+    self.s_lin = nn.Linear(N, D_out)
+
+  def forward(self, X):
+    X = F.relu(self.f_lin(X))
+    return F.softmax(self.s_lin(X))
+
+model = MyModule()
+loss_fn = nn.CrossEntropyLoss()
+optim = torch.optim.Adam(model.parameters(), 1e-1)
+
+losses = []
+for t in range(100):
+  y_pred = model(X)
+
+  loss = loss_fn(y_pred, y)
+  losses.append(loss.item())
+
+  optim.zero_grad()
+  loss.backward()
+  optim.step()
+
+plt.plot(losses)
