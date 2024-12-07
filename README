@@ -1,3 +1,4 @@
 The program creates spiral-shaped data that cannot be classified by linear models.
 
 Then a neural network with 2 hidden layers is created. The loss function is crossentropy, the optimizer is Adam. The neural network is trained for 100 epochs and the loss function is plotted
+tut git
